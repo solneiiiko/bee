@@ -6,6 +6,7 @@ class WelcomeController < ApplicationController
 	end
 
 	private
+
 		def set_item
 			@bee ||= Answer.new
 		end
