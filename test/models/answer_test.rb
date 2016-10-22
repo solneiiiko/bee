@@ -186,7 +186,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_days, [ ['2013-04-01', 220], ['2013-04-07', 100], ['2013-05-01', 15]].to_h
+    assert_equal answer.stat_by_days, [ ['2013-04-01', 220], ['2013-04-07', 100], ['2013-05-01', 15]]
   end
 
   # Какая пчела была наиболее эффективной? Какая была наименее эффективной? Эффективность измеряется как среднее количество сахара за все рабочие дни (Было бы здорово увидеть таблицу для всех пчел)
@@ -207,7 +207,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 20], ['2', 200], ['3', 15]].to_h
+    assert_equal answer.stat_by_bee, [ ['1', 20], ['2', 200], ['3', 15]]
   end
 
   test "проверим, если для пчелы 1 есть несколько записей в день" do
@@ -228,7 +228,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 220], ['2', 200], ['3', 15]].to_h
+    assert_equal answer.stat_by_bee, [ ['1', 220], ['2', 200], ['3', 15]]
   end
 
   test "проверим, если для пчелы есть несколько дней" do
@@ -250,7 +250,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 110], ['2', 100], ['3', 15]].to_h
+    assert_equal answer.stat_by_bee, [ ['1', 110], ['2', 100], ['3', 15]]
   end
 
 end
