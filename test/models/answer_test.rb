@@ -43,7 +43,7 @@ class AnswerTest < ActiveSupport::TestCase
   end
 
   #Из пыльцы какого типа было получено больше всего сахара
-  test "действительно ли значение считаем с двух таблиц, а не берем самое большое в какой-то" do
+  test "best_pollen: действительно ли значение считаем с двух таблиц, а не берем самое большое в какой-то" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -63,7 +63,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.best_pollen, 'name3'
   end
 
-  test "если значения из harvest разбиты на несколько строк" do
+  test "best_pollen: если значения из harvest разбиты на несколько строк" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -88,7 +88,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.best_pollen, 'name3'
   end
 
-  test "если максимальных несколько, то вернем любой" do
+  test "best_pollen: если максимальных несколько, то вернем любой" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -109,7 +109,7 @@ class AnswerTest < ActiveSupport::TestCase
   end
 
   # Какая пыльца была наиболее популярна среди пчел
-  test "одна пчела собирала разные виды пыльцы" do
+  test "popular_pollen: одна пчела собирала разные виды пыльцы" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -129,7 +129,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.popular_pollen, 'name2'
   end
 
-  test "несколько пчел собирали пыльцу. Проверим что учитывается без учета пчел" do
+  test "popular_pollen: несколько пчел собирали пыльцу. Проверим что учитывается без учета пчел" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -152,7 +152,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.popular_pollen, 'name3'
   end
 
-  test "несколько пчел собирали пыльцу. Разобьем по дням. Проверим что учитывается без учета пчел" do
+  test "popular_pollen: несколько пчел собирали пыльцу. Разобьем по дням. Проверим что учитывается без учета пчел" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -179,7 +179,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.popular_pollen, 'name3'
   end
 
-  test "если несколько одинаковых вариантов, то вернется любой" do
+  test "popular_pollen: если несколько одинаковых вариантов, то вернется любой" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -201,7 +201,7 @@ class AnswerTest < ActiveSupport::TestCase
 
   # Какой день был самым лучшим для сбора урожая? Какой был худшим?
   # Статистика общая по дням
-  test "Проверим количество сахара за каждый день" do
+  test "stat_by_days: Проверим количество сахара за каждый день" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -223,7 +223,7 @@ class AnswerTest < ActiveSupport::TestCase
   end
 
   # Посмотрим результат: худший и лучший день
-  test "худший и лучший день" do
+  test "best_and_worst_day: худший и лучший день" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -246,7 +246,7 @@ class AnswerTest < ActiveSupport::TestCase
 
   # Какая пчела была наиболее эффективной? Какая была наименее эффективной? Эффективность измеряется как среднее количество сахара за все рабочие дни (Было бы здорово увидеть таблицу для всех пчел)
   # Статистика общая по пчелам
-  test "проверим, что группировка происходит по пчелам" do
+  test "stat_by_bee: проверим, что группировка происходит по пчелам" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -266,7 +266,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.stat_by_bee, [[1, 20.0], [2, 200.0], [3, 15.0]]
   end
 
-  test "проверим, если для пчелы 1 есть несколько записей в день" do
+  test "stat_by_bee: проверим, если для пчелы 1 есть несколько записей в день" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -287,7 +287,7 @@ class AnswerTest < ActiveSupport::TestCase
     assert_equal answer.stat_by_bee, [[1, 220.0], [2, 200.0], [3, 15.0]]
   end
 
-  test "проверим, если для пчелы есть несколько дней" do
+  test "stat_by_bee: проверим, если для пчелы есть несколько дней" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -310,7 +310,7 @@ class AnswerTest < ActiveSupport::TestCase
   end
 
   # Посмотрим результат: худшая и лучшая пчела
-  test "лучшая и худшая пчела" do
+  test "best_and_worst_bee: лучшая и худшая пчела" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],

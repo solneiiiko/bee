@@ -12,7 +12,11 @@ class Answer
 
 		@pollens = opts[:pollens] || CSV.read("public/csv_files/pollens.csv") rescue []
 		@pollens_title = Hash[@pollens.first.zip @pollens.first.size.times] rescue {}
-		@pollens = Hash[ @pollens[1..-1].map{|rec| [rec[@pollens_title['id']], rec] } ] rescue {}
+		@pollens = Hash[ @pollens[1..-1].map do |rec|
+			# На самом деле на время не влияет
+			rec[@pollens_title['sugar_per_mg']] = rec[@pollens_title['sugar_per_mg']].to_f 
+			[rec[@pollens_title['id']], rec]
+		end ] rescue {}
 	end
 
 	# Из пыльцы какого типа было получено больше всего сахара?
@@ -23,7 +27,7 @@ class Answer
 		# Сгруппируем по типу пыльцы и map массив c елементами [тип пыльцы (id), количество сахара]
 		# Отсортируем по количеству сахара (убывание) и получим тип пыльцы (id)
 		res = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['pollen_id']]}.map do |k,v|
-			val_sugar_per_mg = @pollens[k][@pollens_title['sugar_per_mg']].to_f
+			val_sugar_per_mg = @pollens[k][@pollens_title['sugar_per_mg']]
 			[k, v.map{|e| e[@harvest_title['miligrams_harvested']].to_f}.sum * val_sugar_per_mg]
 		end).sort{|a,b| b[1]<=>a[1]}.first.first
 
@@ -60,7 +64,7 @@ class Answer
 		@stat_by_days = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['day']]}.map do |k,v|
 			v.map! do |rec|
 				pollen_id = rec[@harvest_title['pollen_id']]
-				val_sugar_per_mg = @pollens[pollen_id][@pollens_title['sugar_per_mg']].to_f
+				val_sugar_per_mg = @pollens[pollen_id][@pollens_title['sugar_per_mg']]
 
 				rec[@harvest_title['miligrams_harvested']].to_f * val_sugar_per_mg
 			end
@@ -101,7 +105,7 @@ class Answer
 			group_days = group_days.map do |day, rec_arr|
 				rec_arr.map! do |rec|
 					pollen_id = rec[@harvest_title['pollen_id']]
-					val_sugar_per_mg = @pollens[pollen_id][@pollens_title['sugar_per_mg']].to_f
+					val_sugar_per_mg = @pollens[pollen_id][@pollens_title['sugar_per_mg']]
 
 					rec[@harvest_title['miligrams_harvested']].to_f * val_sugar_per_mg
 				end
@@ -130,9 +134,12 @@ class Answer
 	end
 
 	# Можно посмотреть производительность, но на стандартных данных смысла не имеет
+	# Можно сгенерировать, но можно просто размножить уже имеющиеся в файле
 	def self.benchmark(n=10)
 		ans = self.new
 		harvest = ans.instance_variable_get :@harvest
+
+		# с 1, тк в 0 находится шапка таблицы
 		n.times.each { harvest += harvest[1..-1] }
 		ans.instance_variable_set(:@harvest, harvest)
 		Benchmark.bm do |x|
