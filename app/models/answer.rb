@@ -49,10 +49,11 @@ class Answer
 	end
 
 
-	# Какой день был самым лучшим для сбора урожая? Какой был худшим? (Было бы здорово увидеть таблицу или график, который показывает общее количество сахара за каждый день)
+	# Статистика по сахару за каждый день
 	def stat_by_days
 		return {} if @harvest.length<2
-		
+		return @stat_by_days if @stat_by_days 
+
 		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['day']]}
 		
 		res = group_pollen.map do |k,v|
@@ -66,12 +67,21 @@ class Answer
 			[k, v.sum]
 		end
 
-		res
+		@stat_by_days = res.sort{|a,b| a.first<=>b.first}
+	end
+
+	# Какой день был самым лучшим для сбора урожая? Какой был худшим?
+	def best_and_worst_day
+		return @best_and_worst_day if @best_and_worst_day
+		res = self.stat_by_days.sort{|a,b| a[1]<=>b[1]}
+
+		@best_and_worst_day = {best: res.last[0], worst: res.first[0]} rescue { best: nil, worst: nil }
 	end
 
 	# Какая пчела была наиболее эффективной? Какая была наименее эффективной? Эффективность измеряется как среднее количество сахара за все рабочие дни (Было бы здорово увидеть таблицу для всех пчел)
 	def stat_by_bee
 		return {} if @harvest.length<2
+		return @stat_by_bee if @stat_by_bee 
 
 		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['bee_id']]}
 
@@ -94,10 +104,17 @@ class Answer
 
 			avg = group_days.map{|e| e[1].to_f }.sum / group_days.length 
 
-			[k, avg]
+			[k.to_i, avg]
 		end
 
-		res
+		@stat_by_bee = res.sort{|a,b| a.first<=>b.first}
+	end
+
+	def best_and_worst_bee
+		return @best_and_worst_bee if @best_and_worst_bee
+		res = self.stat_by_bee.sort{|a,b| a[1]<=>b[1]}
+
+		@best_and_worst_bee = {best: res.last[0], worst: res.first[0]} rescue { best: nil, worst: nil }
 	end
 
 end

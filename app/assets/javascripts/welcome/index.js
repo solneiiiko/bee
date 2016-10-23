@@ -28,7 +28,7 @@ function statisticShow (index,container) {
 		    labels: statisticData[key].map(function (vals) { return vals[0] }),// bee_id или day
 		    datasets: [
 		        {
-		            label: "",
+		            label: $container.attr('data-title'),
 		            backgroundColor: color.map(function (vals) { return 'rgba(' + vals + ',0.2)'; }),
 		            borderColor: color.map(function (vals) { return 'rgba(' + vals + ',1)'; }),
 		            borderWidth: 1,

@@ -1,16 +1,24 @@
 <div>
 	<span>Из пыльцы какого типа было получено больше всего сахара?</span>
-	<span><%=@bee.a1%></span>
+	<b><%=@bee.a1%></b>
 </div>
 <div>
 	<span>Какая пыльца была наиболее популярна среди пчел?</span>
-	<span><%=@bee.a2%></span>
+	<b><%=@bee.a2%></b>
 </div>
 <div>
-	<span>Какой день был самым лучшим для сбора урожая?Какой был худшим?</span>
-	<canvas data-statistic="by_days" width="400" height="400"></canvas>
+	<span>Какой день был самым лучшим для сбора урожая?</span>
+	<b><%=@bee.best_and_worst_day[:best]%></b>
+	<br/>
+	<span>Какой был худшим?</span>
+	<b><%=@bee.best_and_worst_day[:worst]%></b>
+	<canvas data-statistic="by_days" data-title="Статистика по дням"></canvas>
 </div>
 <div>
-	<span>Какая пчела была наиболее эффективной? Какая была наименее эффективной?</span>
-	<canvas data-statistic="by_bee" width="400" height="400"></canvas>
+	<span>Какая пчела была наиболее эффективной?</span>
+	<b><%=@bee.best_and_worst_bee[:best]%></b>
+	<br/>
+	<span>Какая была наименее эффективной?</span>
+	<b><%=@bee.best_and_worst_bee[:worst]%></b>
+	<canvas data-statistic="by_bee" data-title="Статистика по пчелам"></canvas>
 </div>

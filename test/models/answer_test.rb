@@ -167,7 +167,8 @@ class AnswerTest < ActiveSupport::TestCase
     assert_includes ['name2', 'name3'], answer.a2
   end
 
-  # Какой день был самым лучшим для сбора урожая? Какой был худшим? (Было бы здорово увидеть таблицу или график, который показывает общее количество сахара за каждый день)
+  # Какой день был самым лучшим для сбора урожая? Какой был худшим?
+  # Статистика общая по дням
   test "Проверим количество сахара за каждый день" do
     pollens = [
       %w(id name sugar_per_mg),
@@ -186,10 +187,33 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_days, [ ['2013-04-01', 220], ['2013-04-07', 100], ['2013-05-01', 15]]
+    assert_equal answer.stat_by_days, [['2013-04-01', 220.0], ['2013-04-07', 100.0], ['2013-05-01', 15.0]]
+  end
+
+  # Посмотрим результат: худший и лучший день
+  test "худший и лучший день" do
+    pollens = [
+      %w(id name sugar_per_mg),
+      ['1', 'name1', '10'],
+      ['2', 'name2', '1'],
+      ['3', 'name3', '5']
+    ]
+
+    harvest = [
+      %w(bee_id day pollen_id miligrams_harvested),
+      ['1', '2013-04-01', '2', '20'],  # 20
+      ['2', '2013-04-01', '1', '20'],  # 200
+      ['2', '2013-05-01', '1', '1.5'], # 15
+      ['1', '2013-04-07', '3', '20']   # 100
+    ]
+
+    answer = Answer.new(harvest: harvest, pollens: pollens)
+
+    assert_equal answer.best_and_worst_day, {best: '2013-04-01', worst: '2013-05-01'}
   end
 
   # Какая пчела была наиболее эффективной? Какая была наименее эффективной? Эффективность измеряется как среднее количество сахара за все рабочие дни (Было бы здорово увидеть таблицу для всех пчел)
+  # Статистика общая по пчелам
   test "проверим, что группировка происходит по пчелам" do
     pollens = [
       %w(id name sugar_per_mg),
@@ -201,13 +225,13 @@ class AnswerTest < ActiveSupport::TestCase
     harvest = [
       %w(bee_id day pollen_id miligrams_harvested),
       ['1', '2013-04-01', '2', '20'],  # 20
-      ['2', '2013-04-02', '1', '20'],  # 200
-      ['3', '2013-05-01', '1', '1.5']  # 15
+      ['3', '2013-05-01', '1', '1.5'],  # 15
+      ['2', '2013-04-02', '1', '20']  # 200
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 20], ['2', 200], ['3', 15]]
+    assert_equal answer.stat_by_bee, [[1, 20.0], [2, 200.0], [3, 15.0]]
   end
 
   test "проверим, если для пчелы 1 есть несколько записей в день" do
@@ -221,17 +245,40 @@ class AnswerTest < ActiveSupport::TestCase
     harvest = [
       %w(bee_id day pollen_id miligrams_harvested),
       ['1', '2013-04-01', '2', '20'],  # 20
+      ['3', '2013-05-01', '1', '1.5'],  # 15
       ['1', '2013-04-01', '1', '20'],  # 200
-      ['2', '2013-04-02', '1', '20'],  # 200
-      ['3', '2013-05-01', '1', '1.5']  # 15
+      ['2', '2013-04-02', '1', '20']  # 200
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 220], ['2', 200], ['3', 15]]
+    assert_equal answer.stat_by_bee, [[1, 220.0], [2, 200.0], [3, 15.0]]
   end
 
   test "проверим, если для пчелы есть несколько дней" do
+    pollens = [
+      %w(id name sugar_per_mg),
+      ['1', 'name1', '10'],
+      ['2', 'name2', '1'],
+      ['3', 'name3', '5']
+    ]
+
+    harvest = [
+      %w(bee_id day pollen_id miligrams_harvested),
+      ['1', '2013-04-01', '2', '20'],  # 20
+      ['1', '2013-04-03', '1', '20'],  # 200
+      ['3', '2013-05-01', '1', '1.5'],  # 15
+      ['2', '2013-04-02', '1', '10'],  # 100
+      ['2', '2013-04-03', '1', '10']  # 100
+    ]
+
+    answer = Answer.new(harvest: harvest, pollens: pollens)
+
+    assert_equal answer.stat_by_bee, [[1, 110.0], [2, 100.0], [3, 15.0]]
+  end
+
+  # Посмотрим результат: худшая и лучшая пчела
+  test "лучшая и худшая пчела" do
     pollens = [
       %w(id name sugar_per_mg),
       ['1', 'name1', '10'],
@@ -250,7 +297,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.stat_by_bee, [ ['1', 110], ['2', 100], ['3', 15]]
+    assert_equal answer.best_and_worst_bee, {best: 1, worst: 3}
   end
 
 end
