@@ -41,12 +41,11 @@ function statisticShow (index,container) {
 		data: dataChart,
 		options: {}
 	});
-
-
-	console.log(statisticData[key]);
 };
 
+/*
+* Просто random из диапазона
+*/
 function getRandom (min, max) {
   return Math.random() * (max - min) + min;
 };
-
