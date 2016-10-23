@@ -1,24 +1,9 @@
 # README
+Ответы на вопросы
+Из пыльцы какого типа было получено больше всего сахара? Canola
+Какая пыльца была наиболее популярна среди пчел? Canola
+Какой день был самым лучшим для сбора урожая? 2013-05-26 
+Какой был худшим? 2013-06-30
+Какая пчела была наиболее эффективной? 2 
+Какая была наименее эффективной? 11
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
