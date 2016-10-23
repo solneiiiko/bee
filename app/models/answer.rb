@@ -6,57 +6,58 @@ class Answer
 	# считаем, что данные идельные
 	# записываем во внутренние переменные
 	def initialize(opts={})
-		@harvest = opts[:harvest] || CSV.read("public/csv_files/harvest.csv")
+		@harvest = opts[:harvest] || CSV.read("public/csv_files/harvest.csv") rescue []
 
 		@harvest_title = Hash[@harvest.first.map{|fn| fn.gsub(/(\s)/, '') }.zip @harvest.first.size.times] rescue {}
 
-		@pollens = opts[:pollens] || CSV.read("public/csv_files/pollens.csv")
+		@pollens = opts[:pollens] || CSV.read("public/csv_files/pollens.csv") rescue []
 		@pollens_title = Hash[@pollens.first.zip @pollens.first.size.times] rescue {}
 		@pollens = Hash[ @pollens[1..-1].map{|rec| [rec[@pollens_title['id']], rec] } ] rescue {}
 	end
 
-	def a
-		@harvest_title
-	end
-
-	# Выполнили подсчет для разных вариантов
-
 	# Из пыльцы какого типа было получено больше всего сахара?
-	def a1
-		return nil if @harvest.length<2
+	def best_pollen
+		# Если нет данных, то ничего не делаем
+		return nil if @harvest.length<2 || @pollens.length<2
 		
-		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['pollen_id']]}
-		
-		res = group_pollen.map do |k,v|
+		# Сгруппируем по типу пыльцы и map массив c елементами [тип пыльцы (id), количество сахара]
+		# Отсортируем по количеству сахара (убывание) и получим тип пыльцы (id)
+		res = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['pollen_id']]}.map do |k,v|
 			val_sugar_per_mg = @pollens[k][@pollens_title['sugar_per_mg']].to_f
 			[k, v.map{|e| e[@harvest_title['miligrams_harvested']].to_f}.sum * val_sugar_per_mg]
-		end
+		end).sort{|a,b| b[1]<=>a[1]}.first.first
 
-		@pollens[res.sort{|a,b| b[1]<=>a[1]}.first.first][@pollens_title['name']]
+		# По id пыльцы получим ее имя и его вернем
+		@pollens[res][@pollens_title['name']]
 	end
 
 	# Какая пыльца была наиболее популярна среди пчел?
-	def a2
-		return nil if @harvest.length<2
+	def popular_pollen
+		# Если нет данных, то ничего не делаем
+		return nil if @harvest.length<2 || @pollens.length<2
 		
-		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['pollen_id']]}
-
-		res = group_pollen.map do |k,v|
+		# Сгруппируем по типу пыльцы и map массив c елементами [тип пыльцы (id), количество в мг]
+		# Отсортируем по количеству мг (убывание) и получим тип пыльцы (id)
+		res = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['pollen_id']]}.map do |k,v|
 			[k, v.map{|e| e[@harvest_title['miligrams_harvested']].to_f}.sum]
-		end
+		end).sort{|a,b| b[1]<=>a[1]}.first.first
 	
-		@pollens[res.sort{|a,b| b[1]<=>a[1]}.first.first][@pollens_title['name']]
+		# По id пыльцы получим ее имя и его вернем
+		@pollens[res][@pollens_title['name']]
 	end
 
 
 	# Статистика по сахару за каждый день
 	def stat_by_days
-		return {} if @harvest.length<2
+		# Если нет данных, то ничего не делаем
+		return [] if @harvest.length<2 || @pollens.length<2
+
+		# Если статистика посчитана, то можно вернуть ее же (тк долго считается, лучше закешировать).
 		return @stat_by_days if @stat_by_days 
 
-		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['day']]}
-		
-		res = group_pollen.map do |k,v|
+		# Сгруппируем по типу дням и map массив c елементами [день, количество сахара]
+		# Отсортируем по дням (возрастание) и получим массив для вывода статистики 
+		@stat_by_days = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['day']]}.map do |k,v|
 			v.map! do |rec|
 				pollen_id = rec[@harvest_title['pollen_id']]
 				val_sugar_per_mg = @pollens[pollen_id][@pollens_title['sugar_per_mg']].to_f
@@ -65,14 +66,17 @@ class Answer
 			end
 
 			[k, v.sum]
-		end
+		end).sort{|a,b| a.first<=>b.first}
 
-		@stat_by_days = res.sort{|a,b| a.first<=>b.first}
+		@stat_by_days
 	end
 
 	# Какой день был самым лучшим для сбора урожая? Какой был худшим?
 	def best_and_worst_day
+		# Возьмем результат, если уже считали (во вьюшке спрашиваем 2 раза)
 		return @best_and_worst_day if @best_and_worst_day
+
+		# Отсортируем по количеству сахара
 		res = self.stat_by_days.sort{|a,b| a[1]<=>b[1]}
 
 		@best_and_worst_day = {best: res.last[0], worst: res.first[0]} rescue { best: nil, worst: nil }
@@ -80,16 +84,19 @@ class Answer
 
 	# Какая пчела была наиболее эффективной? Какая была наименее эффективной? Эффективность измеряется как среднее количество сахара за все рабочие дни (Было бы здорово увидеть таблицу для всех пчел)
 	def stat_by_bee
-		return {} if @harvest.length<2
+		# Если нет данных, то ничего не делаем
+		return [] if @harvest.length<2 || @pollens.length<2
+		
+		# Если статистика посчитана, то можно вернуть ее же (тк долго считается, лучше закешировать).
 		return @stat_by_bee if @stat_by_bee 
 
-		group_pollen = @harvest[1..-1].group_by{|rec| rec[@harvest_title['bee_id']]}
-
-		res = group_pollen.map do |k,v|
+		# Сгруппируем по пчелам и map с елементами [id пчелы(int), среднее количество сахара за день]
+		# Отсортируем по id пчелы для вывода
+		@stat_by_bee = (@harvest[1..-1].group_by{|rec| rec[@harvest_title['bee_id']]}.map do |k,v|
 			# сгруппируем для каждой пчелы по дням
 			group_days = v.group_by{|rec| rec[@harvest_title['day']]}
 
-			# посчитаем сумму за каждый день
+			# посчитаем сумму за каждый день(вдруг день указан для пчелы несколько раз), например разные виды пыльцы
 			# не map! т к hash
 			group_days = group_days.map do |day, rec_arr|
 				rec_arr.map! do |rec|
@@ -102,16 +109,21 @@ class Answer
 				[day, rec_arr.sum]
 			end
 
+			# Посчитаем среднее значение за каждый день, в который доывалась пыльца
 			avg = group_days.map{|e| e[1].to_f }.sum / group_days.length 
 
+			# id в int для правильной сортировки
 			[k.to_i, avg]
-		end
+		end).sort{|a,b| a.first<=>b.first}
 
-		@stat_by_bee = res.sort{|a,b| a.first<=>b.first}
+		@stat_by_bee
 	end
 
 	def best_and_worst_bee
+		# Возьмем результат, если уже считали (во вьюшке спрашиваем 2 раза)
 		return @best_and_worst_bee if @best_and_worst_bee
+
+		# Отсортируем по среднему количеству сахара
 		res = self.stat_by_bee.sort{|a,b| a[1]<=>b[1]}
 
 		@best_and_worst_bee = {best: res.last[0], worst: res.first[0]} rescue { best: nil, worst: nil }

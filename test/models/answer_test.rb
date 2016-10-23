@@ -3,14 +3,46 @@ require 'test_helper'
 
 class AnswerTest < ActiveSupport::TestCase
   
-  # %i(a1 a2 a3 a4).each do |method_name|
-  #   test "#{method_name} с пустыми данными" do
-  #     answer = Answer.new(harvest: [], pollens: [])
-  #     assert_equal answer.method(method_name).call, []    
-  #   end
-  # end
+  # Проверим, что если в качестве дынных пустые массивы, то у нас ничего не слетит
+  [
+    [:best_pollen, nil], [:popular_pollen, nil], [:stat_by_days, []], [:stat_by_bee, []],
+    [:best_and_worst_day, {best: nil, worst: nil}], [:best_and_worst_bee, {best: nil, worst: nil}]
+  ].each do |method_name, result|
+  
+    test "#{method_name} с пустыми данными" do
+      answer = Answer.new(harvest: [], pollens: [])
+      
+      assert_equal answer.method(method_name).call, result    
+    end
+  
+    test "#{method_name} с пустым harvest" do
+      pollens = [
+        %w(bee_id day pollen_id miligrams_harvested),
+        ['1', '2013-04-01', '2', '20'],
+        ['2', '2013-05-01', '1', '1.5']
+      ]
+      
+      answer = Answer.new(harvest: [], pollens: pollens)
+      
+      assert_equal answer.method(method_name).call, result    
+    end
 
-  #Из пыльцы какого типа было получено больше всего сахара: a1
+    test "#{method_name} с пустым pollens" do
+      harvest = [
+        %w(id name sugar_per_mg),
+        ['1', 'name1', '10'],
+        ['2', 'name2', '1'],
+        ['3', 'name3', '5']
+      ]
+
+      answer = Answer.new(harvest: harvest, pollens: [])
+      
+      assert_equal answer.method(method_name).call, result    
+    end
+
+  end
+
+  #Из пыльцы какого типа было получено больше всего сахара
   test "действительно ли значение считаем с двух таблиц, а не берем самое большое в какой-то" do
     pollens = [
       %w(id name sugar_per_mg),
@@ -28,7 +60,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.a1, 'name3'
+    assert_equal answer.best_pollen, 'name3'
   end
 
   test "если значения из harvest разбиты на несколько строк" do
@@ -53,7 +85,7 @@ class AnswerTest < ActiveSupport::TestCase
     
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.a1, 'name3'
+    assert_equal answer.best_pollen, 'name3'
   end
 
   test "если максимальных несколько, то вернем любой" do
@@ -73,7 +105,7 @@ class AnswerTest < ActiveSupport::TestCase
     
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_includes ['name1', 'name3'], answer.a1
+    assert_includes ['name1', 'name3'], answer.best_pollen
   end
 
   # Какая пыльца была наиболее популярна среди пчел
@@ -94,7 +126,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.a2, 'name2'
+    assert_equal answer.popular_pollen, 'name2'
   end
 
   test "несколько пчел собирали пыльцу. Проверим что учитывается без учета пчел" do
@@ -117,7 +149,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.a2, 'name3'
+    assert_equal answer.popular_pollen, 'name3'
   end
 
   test "несколько пчел собирали пыльцу. Разобьем по дням. Проверим что учитывается без учета пчел" do
@@ -144,7 +176,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_equal answer.a2, 'name3'
+    assert_equal answer.popular_pollen, 'name3'
   end
 
   test "если несколько одинаковых вариантов, то вернется любой" do
@@ -164,7 +196,7 @@ class AnswerTest < ActiveSupport::TestCase
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
 
-    assert_includes ['name2', 'name3'], answer.a2
+    assert_includes ['name2', 'name3'], answer.popular_pollen
   end
 
   # Какой день был самым лучшим для сбора урожая? Какой был худшим?
@@ -225,8 +257,8 @@ class AnswerTest < ActiveSupport::TestCase
     harvest = [
       %w(bee_id day pollen_id miligrams_harvested),
       ['1', '2013-04-01', '2', '20'],  # 20
-      ['3', '2013-05-01', '1', '1.5'],  # 15
-      ['2', '2013-04-02', '1', '20']  # 200
+      ['3', '2013-05-01', '1', '1.5'], # 15
+      ['2', '2013-04-02', '1', '20']   # 200
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
@@ -245,9 +277,9 @@ class AnswerTest < ActiveSupport::TestCase
     harvest = [
       %w(bee_id day pollen_id miligrams_harvested),
       ['1', '2013-04-01', '2', '20'],  # 20
-      ['3', '2013-05-01', '1', '1.5'],  # 15
+      ['3', '2013-05-01', '1', '1.5'], # 15
       ['1', '2013-04-01', '1', '20'],  # 200
-      ['2', '2013-04-02', '1', '20']  # 200
+      ['2', '2013-04-02', '1', '20']   # 200
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
@@ -267,9 +299,9 @@ class AnswerTest < ActiveSupport::TestCase
       %w(bee_id day pollen_id miligrams_harvested),
       ['1', '2013-04-01', '2', '20'],  # 20
       ['1', '2013-04-03', '1', '20'],  # 200
-      ['3', '2013-05-01', '1', '1.5'],  # 15
+      ['3', '2013-05-01', '1', '1.5'], # 15
       ['2', '2013-04-02', '1', '10'],  # 100
-      ['2', '2013-04-03', '1', '10']  # 100
+      ['2', '2013-04-03', '1', '10']   # 100
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
@@ -288,11 +320,11 @@ class AnswerTest < ActiveSupport::TestCase
 
     harvest = [
       %w(bee_id day pollen_id miligrams_harvested),
-      ['1', '2013-04-01', '2', '20'],  # 20
-      ['1', '2013-04-03', '1', '20'],  # 200
-      ['2', '2013-04-02', '1', '10'],  # 100
-      ['2', '2013-04-03', '1', '10'],  # 100
-      ['3', '2013-05-01', '1', '1.5']  # 15
+      ['1', '2013-04-01', '2', '20'], # 20
+      ['1', '2013-04-03', '1', '20'], # 200
+      ['2', '2013-04-02', '1', '10'], # 100
+      ['2', '2013-04-03', '1', '10'], # 100
+      ['3', '2013-05-01', '1', '1.5'] # 15
     ]
 
     answer = Answer.new(harvest: harvest, pollens: pollens)
