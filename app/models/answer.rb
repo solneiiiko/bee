@@ -3,7 +3,7 @@ require 'csv'
 
 class Answer
 	# При инициализации читаем файлы
-	# считаем, что данные идельные
+	# считаем, что данные идельные, те если пришли столбцы, то точно есть нужные
 	# записываем во внутренние переменные
 	def initialize(opts={})
 		@harvest = opts[:harvest] || CSV.read("public/csv_files/harvest.csv") rescue []
@@ -129,4 +129,25 @@ class Answer
 		@best_and_worst_bee = {best: res.last[0], worst: res.first[0]} rescue { best: nil, worst: nil }
 	end
 
+	# Можно посмотреть производительность, но на стандартных данных смысла не имеет
+	def self.benchmark(n=10)
+		ans = self.new
+		harvest = ans.instance_variable_get :@harvest
+		n.times.each { harvest += harvest[1..-1] }
+		ans.instance_variable_set(:@harvest, harvest)
+		Benchmark.bm do |x|
+		  x.report('.best_pollen') 	 { ans.best_pollen }
+		  x.report('.popular_pollen'){ ans.popular_pollen }
+		  x.report('.stat_by_days')  { ans.stat_by_days }
+		  x.report('.stat_by_bee') 	 { ans.stat_by_bee }
+		end
+	end
+						
 end
+
+#  Answer.benchmark 15
+#        user     system      total        real
+# .best_pollen 15.440000   0.060000  15.500000 ( 15.493378)
+# .popular_pollen 14.940000   0.060000  15.000000 ( 14.988206)
+# .stat_by_days 24.800000   0.050000  24.850000 ( 24.844300)
+# .stat_by_bee 32.180000   0.020000  32.200000 ( 32.182741)
